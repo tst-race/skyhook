@@ -148,7 +148,7 @@ fi
 formatlog "INFO" "Cleaning plugin/artifacts Before Building Artifacts"
 bash ${BASE_DIR}/clean_artifacts.sh
 
-mkdir build/aws-install 
+mkdir -p build/aws-install 
 apt-get update && apt-get install zlib1g-dev -y
 pushd aws-sdk-cpp
 cmake ../aws-sdk-cpp/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../build/aws-install -DBUILD_ONLY="s3"

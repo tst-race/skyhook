@@ -187,8 +187,6 @@ void Link::runActionThread() {
 }
 
 std::string Link::generateNextObjUuid(const std::string &currentObjUuid) {
-    TRACE_METHOD(currentObjUuid);
-
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256(reinterpret_cast<const unsigned char *>(currentObjUuid.c_str()), currentObjUuid.size(), hash);
     std::stringstream ss;
