@@ -95,9 +95,11 @@ protected:
                                    LinkStatus linkStatus);
 
     bool ready;
+    bool firstCreatedIsSingleReceive;
     RaceHandle regionReqHandle;
     RaceHandle bucketReqHandle;
     RaceHandle seedReqHandle;
+    RaceHandle singleReceiveReqHandle;
     std::string region;
     std::string bucket;
     std::string seed;

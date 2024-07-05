@@ -31,6 +31,8 @@ struct LinkAddress {
     // Optional
     int openObjects{1};
     int maxTries{120};
+    bool singleReceive{false};
+    // Used to indicate the link will keep a single static receive (S3) object and will be used by multiple clients. Rather than the ratcheting UUIDs there will only ever be a single UUID, publicly writable.
 };
 
 // Enable automatic conversion to/from json

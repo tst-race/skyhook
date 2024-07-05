@@ -100,9 +100,11 @@ SkyhookTransport::SkyhookTransport(ITransportSdk *sdk, const std::string &roleNa
     defaultLinkProperties(createDefaultLinkProperties(channelProperties)),
     role(stringToSkyhookRole(roleName)),
     ready(false),
+    firstCreatedIsSingleReceive(false),
     regionReqHandle(sdk->requestPluginUserInput("region", "What AWS region is the S3 bucket located in?", true).handle),
     bucketReqHandle(sdk->requestPluginUserInput("bucket", "What is the name of the S3 bucket?", true).handle),
-    seedReqHandle(sdk->requestPluginUserInput("seed", "Enter a random string", true).handle) {}
+    seedReqHandle(sdk->requestPluginUserInput("seed", "Enter a random string", true).handle),
+    singleReceiveReqHandle(sdk->requestPluginUserInput("singleReceive", "Should there be a singleReceive link for supporting multiple clients? (e.g. a Skyhook link address will be publicly distributed)", true).handle) {}
 
 ComponentStatus SkyhookTransport::onUserInputReceived(RaceHandle handle, bool answered,
                                                                   const std::string &response) {
@@ -132,11 +134,21 @@ ComponentStatus SkyhookTransport::onUserInputReceived(RaceHandle handle, bool an
         seed = "seed";
       }
     }
+    if (handle == singleReceiveReqHandle) {
+      singleReceiveReqHandle = NULL_RACE_HANDLE;
+      if (answered) {
+        firstCreatedIsSingleReceive = (response == "1" or response == "true");
+      } else {
+        firstCreatedIsSingleReceive = false;
+      }
+    }
+
 
     // if (!bucket.empty() and !region.empty() and !seed.empty()) 
     if (regionReqHandle == NULL_RACE_HANDLE and
         bucketReqHandle == NULL_RACE_HANDLE and
-        seedReqHandle == NULL_RACE_HANDLE) {
+        seedReqHandle == NULL_RACE_HANDLE and
+        singleReceiveReqHandle == NULL_RACE_HANDLE) {
         ready = true;
         sdk->updateState(COMPONENT_STATE_STARTED);
     }
@@ -231,6 +243,12 @@ ComponentStatus SkyhookTransport::createLink(RaceHandle handle, const LinkID &li
     address.initialFetchObjUuid = Link::generateNextObjUuid("fetch" + seed);
     address.postBucket = bucket; // TODO
     address.initialPostObjUuid = Link::generateNextObjUuid("post" + seed);
+
+    // First createLink and singleReceive is specified, so make it singleReceive just this once then never on subsequent links
+    if (firstCreatedIsSingleReceive) {
+      address.singleReceive = true;
+      firstCreatedIsSingleReceive = false;
+    }
     logInfo("Created new Link, address:" + nlohmann::json(address).dump());
 
     LinkProperties properties;

@@ -28,6 +28,7 @@ setup_component_target(
         ../common/SkyhookTransport.cpp
         ../common/log.cpp
         LinkAccountHolder.cpp
+        LinkAccountHolderSingleReceive.cpp
 	SkyhookTransportAccountHolder.cpp
 	S3Manager.cpp
 )

@@ -151,7 +151,7 @@ bash ${BASE_DIR}/clean_artifacts.sh
 mkdir -p build/aws-install 
 apt-get update && apt-get install zlib1g-dev -y
 pushd aws-sdk-cpp
-cmake ../aws-sdk-cpp/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../build/aws-install -DBUILD_ONLY="s3"
+cmake ../aws-sdk-cpp/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../build/aws-install
 make
 make install
 popd
