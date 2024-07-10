@@ -25,7 +25,8 @@
 #include "LinkAddress.h"
 #include "log.h"
 #include <iostream>
-
+#include <openssl/sha.h>
+#include <openssl/rand.h>
 
 
 std::string skyhookRoleToString(SkyhookRole skyhookRole) {
@@ -131,7 +132,7 @@ ComponentStatus SkyhookTransport::onUserInputReceived(RaceHandle handle, bool an
       if (answered) {
         seed = response;
       } else {
-        seed = "seed";
+        seed = generateRandomSeed();
       }
     }
     if (handle == singleReceiveReqHandle) {
@@ -418,6 +419,18 @@ ComponentStatus SkyhookTransport::doAction(const std::vector<RaceHandle> &handle
 
 
     return COMPONENT_ERROR;
+}
+
+std::string SkyhookTransport::generateRandomSeed() {
+    unsigned char random_seed[SHA256_DIGEST_LENGTH];
+    RAND_bytes(random_seed, SHA256_DIGEST_LENGTH);
+    std::stringstream ss;
+    
+    for(int i = 0; i < SHA256_DIGEST_LENGTH; i++){
+      ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( random_seed[i] );
+    }
+    
+    return ss.str();
 }
 
 const RaceVersionInfo raceVersion = RACE_VERSION;

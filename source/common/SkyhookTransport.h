@@ -79,6 +79,8 @@ protected:
                                                      const LinkAddress &address,
                                                      const LinkProperties &properties,
                                                      bool isCreator);
+    virtual std::string generateRandomSeed();
+
     ITransportSdk *sdk;
     std::string racePersona;
     ChannelProperties channelProperties;

@@ -49,17 +49,17 @@ ActionTimeline LinkUserModel::getTimeline(Timestamp start, Timestamp end) {
           });
         current += WAIT_TIME;
 
-        nlohmann::json postAction = ActionJson{
-          linkId,
-          ACTION_POST
-        };
-        cachedTimeline.push_back({
-            current,
-            ++nextActionId,
-            postAction.dump(),
-          });
+        // nlohmann::json postAction = ActionJson{
+        //   linkId,
+        //   ACTION_POST
+        // };
+        // cachedTimeline.push_back({
+        //     current,
+        //     ++nextActionId,
+        //     postAction.dump(),
+        //   });
 
-        current += WAIT_TIME;
+        // current += WAIT_TIME;
     }
 
     return cachedTimeline;

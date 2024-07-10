@@ -19,6 +19,7 @@
 #define __COMMS_TWOSIX_USER_MODEL_H__
 
 #include <IUserModelComponent.h>
+#include <ComponentTypes.h>
 
 #include <atomic>
 #include <memory>
@@ -45,6 +46,7 @@ public:
 
     virtual ComponentStatus onTransportEvent(const Event &event) override;
 
+    virtual ActionTimeline onSendPackage(const LinkID &linkId, int bytes) override;
 protected:
     virtual std::shared_ptr<LinkUserModel> createLinkUserModel(const LinkID &linkId);
 
