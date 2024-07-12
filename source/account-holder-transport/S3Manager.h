@@ -43,6 +43,7 @@ public:
                                 const std::string &principal);
   virtual bool removeObjPermission(const std::string &uuid, const std::string &bucket, const std::string &statementKey) ;
   virtual bool createBucket(const std::string &bucketName, const std::string &region);
+  virtual bool deleteBucket(const std::string &bucketName, const std::string &region);
   // virtual bool GetBucketPolicy(const std::string &bucketName);
   virtual bool getObject(const std::string &bucketName,
                           const std::string &objectUuid,
@@ -58,7 +59,7 @@ public:
 private:
   virtual bool updatePolicy(const std::string &bucket);
   
-  nlohmann::json policyJson;
+  std::unordered_map<std::string, nlohmann::json> policyJsonMap;
   Aws::S3::S3Client s3Client;
   std::mutex policyLock;
 };

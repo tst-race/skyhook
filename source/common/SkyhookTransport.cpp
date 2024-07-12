@@ -107,14 +107,15 @@ SkyhookTransport::SkyhookTransport(ITransportSdk *sdk, const std::string &roleNa
     seedReqHandle(sdk->requestPluginUserInput("seed", "Enter a random string", true).handle),
     singleReceiveReqHandle(sdk->requestPluginUserInput("singleReceive", "Should there be a singleReceive link for supporting multiple clients? (e.g. a Skyhook link address will be publicly distributed)", true).handle) {}
 
-ComponentStatus SkyhookTransport::onUserInputReceived(RaceHandle handle, bool answered,
+
+void SkyhookTransport::handleUserInputResponse(RaceHandle handle, bool answered,
                                                                   const std::string &response) {
     TRACE_METHOD(handle, answered, response);
 
     if (handle == regionReqHandle) {
       regionReqHandle = NULL_RACE_HANDLE;
       if (answered) {
-      region = response;
+        region = response;
       } else {
         region = "us-east-1";
       }
@@ -124,7 +125,7 @@ ComponentStatus SkyhookTransport::onUserInputReceived(RaceHandle handle, bool an
       if (answered) {
         bucket = response;
       } else {
-        bucket = "race-bucket-3";
+        bucket = generateRandomString(31);
       }
     }
     if (handle == seedReqHandle) {
@@ -132,7 +133,7 @@ ComponentStatus SkyhookTransport::onUserInputReceived(RaceHandle handle, bool an
       if (answered) {
         seed = response;
       } else {
-        seed = generateRandomSeed();
+        seed = generateRandomString(SHA256_DIGEST_LENGTH);
       }
     }
     if (handle == singleReceiveReqHandle) {
@@ -143,8 +144,12 @@ ComponentStatus SkyhookTransport::onUserInputReceived(RaceHandle handle, bool an
         firstCreatedIsSingleReceive = false;
       }
     }
+}
 
-
+ComponentStatus SkyhookTransport::onUserInputReceived(RaceHandle handle, bool answered,
+                                                                  const std::string &response) {
+    TRACE_METHOD(handle, answered, response);
+    handleUserInputResponse(handle, answered, response);
     // if (!bucket.empty() and !region.empty() and !seed.empty()) 
     if (regionReqHandle == NULL_RACE_HANDLE and
         bucketReqHandle == NULL_RACE_HANDLE and
@@ -239,10 +244,10 @@ ComponentStatus SkyhookTransport::createLink(RaceHandle handle, const LinkID &li
     }
 
     LinkAddress address;
-    address.region = region; // TODO
-    address.fetchBucket = bucket; // TODO
+    address.region = region;
+    address.fetchBucket = bucket;
     address.initialFetchObjUuid = Link::generateNextObjUuid("fetch" + seed);
-    address.postBucket = bucket; // TODO
+    address.postBucket = bucket;
     address.initialPostObjUuid = Link::generateNextObjUuid("post" + seed);
 
     // First createLink and singleReceive is specified, so make it singleReceive just this once then never on subsequent links
@@ -421,12 +426,17 @@ ComponentStatus SkyhookTransport::doAction(const std::vector<RaceHandle> &handle
     return COMPONENT_ERROR;
 }
 
-std::string SkyhookTransport::generateRandomSeed() {
+std::string SkyhookTransport::generateRandomString(int bytesSize) {
+  TRACE_METHOD(bytesSize);
     unsigned char random_seed[SHA256_DIGEST_LENGTH];
-    RAND_bytes(random_seed, SHA256_DIGEST_LENGTH);
+    if (bytesSize > SHA256_DIGEST_LENGTH) {
+      logError("generateRandomString called with bytesSize=" + std::to_string(bytesSize) + " > " + std::to_string(SHA256_DIGEST_LENGTH) + ", returning a truncated string");
+        bytesSize = SHA256_DIGEST_LENGTH;
+    }
+    RAND_bytes(random_seed, bytesSize);
     std::stringstream ss;
     
-    for(int i = 0; i < SHA256_DIGEST_LENGTH; i++){
+    for(int i = 0; i < bytesSize; i++){
       ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>( random_seed[i] );
     }
     

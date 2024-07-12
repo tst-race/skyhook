@@ -22,6 +22,7 @@
 #include <base64.h>
 
 #include <chrono>
+#include <thread>
 #include <nlohmann/json.hpp>
 
 #include "PersistentStorageHelpers.h"
@@ -134,5 +135,24 @@ std::string LinkAccountHolder::postOnActionThread(const std::string &postObjUuid
     return nextPostObjUuid;
 }
 
-
+void LinkAccountHolder::shutdown() {
+    TRACE_METHOD(linkId);
+    Link::shutdown();
+    for (auto &uuid : puttableUuids) {
+        accountHolderTransport->s3Manager.makeObjUnputtable(uuid, address);
+    }
+    std::thread cleanupFetchablesThread([uuidList = this->fetchableUuids,
+                                         s3Manager = &this->accountHolderTransport->s3Manager,
+                                         address = this->address]() {
+      std::this_thread::sleep_for(std::chrono::seconds(SHUTDOWN_DELAY_SECONDS));
+      for (auto &uuid : uuidList) {
+        s3Manager->makeObjUngettable(uuid, address);
+      }
+      s3Manager->deleteBucket(address.fetchBucket, address.region);
+      if (address.fetchBucket != address.postBucket) {
+        s3Manager->deleteBucket(address.postBucket, address.region);
+      }
+    });
+    cleanupFetchablesThread.detach();
+}
 

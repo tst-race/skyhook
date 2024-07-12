@@ -125,6 +125,11 @@ do
         shift
         ;;
 
+        --skip-aws-sdk)
+        SKIP_AWS_SDK=1
+        shift
+        ;;
+
         -h|--help)
         printf "%s" "${HELP}"
         shift
@@ -146,16 +151,21 @@ fi
 ###
 
 formatlog "INFO" "Cleaning plugin/artifacts Before Building Artifacts"
-bash ${BASE_DIR}/clean_artifacts.sh
+SKIP_AWS_SDK=$SKIP_AWS_SDK bash ${BASE_DIR}/clean_artifacts.sh
 
-mkdir -p build/aws-install 
-apt-get update && apt-get install zlib1g-dev -y
-pushd aws-sdk-cpp
-cmake ../aws-sdk-cpp/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../build/aws-install
-make
-make install
-popd
-
+if [ -z "${SKIP_AWS_SDK}" ]
+then
+    formatlog "INFO" "Building AWS CPP SDK"
+    mkdir -p build/aws-install 
+    apt-get update && apt-get install zlib1g-dev -y
+    pushd aws-sdk-cpp
+    cmake ../aws-sdk-cpp/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../build/aws-install
+    make
+    make install
+    popd
+else
+    formatlog "INFO" "Skipping building AWS CPP SDK"
+fi
 
 if [ "$(uname -m)" == "x86_64" ]
 then

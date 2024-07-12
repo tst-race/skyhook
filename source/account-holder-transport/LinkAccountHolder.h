@@ -32,6 +32,9 @@
 #include <vector>
 
 #include "Link.h"
+
+const int SHUTDOWN_DELAY_SECONDS = 10;
+
 class SkyhookTransportAccountHolder;
 // #include "SkyhookTransport.h"
 
@@ -49,6 +52,7 @@ public:
 protected:
     virtual std::string fetchOnActionThread(const std::string &fetchObjUuid) override; 
     virtual std::string postOnActionThread(const std::string &postObjUuid, const std::vector<RaceHandle> &handles, uint64_t actionId) override;
+    virtual void shutdown() override;
 
     bool creator;
     SkyhookTransportAccountHolder *accountHolderTransport;

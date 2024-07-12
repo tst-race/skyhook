@@ -28,6 +28,7 @@
 #include <aws/s3/model/GetBucketPolicyRequest.h>
 #include <aws/s3/model/PutBucketPolicyRequest.h>
 #include <aws/s3/model/CreateBucketRequest.h>
+#include <aws/s3/model/DeleteBucketRequest.h>
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/DeleteObjectRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
@@ -40,12 +41,11 @@
 #define PRIVATE_GETTABLE_STRING "private-gettable-"
 
 
-S3Manager::S3Manager() :
-  selfPrincipal("bce78df867026bc9f7f8ff98567367bf8c575682e36c097f884d9c48f366092f"),
-  policyJson({ {"Version", "2012-10-17"}, {"Id", "RacebucketPolicy"}, {"Statement", {
-  }} }) {
-}
-
+S3Manager::S3Manager() : policyJsonMap() {}
+//   policyJsonMap({ {"Version", "2012-10-17"}, {"Id", "RacebucketPolicy"}, {"Statement", {
+//   }} }) {
+// }
+// { {"Version", "2012-10-17"}, {"Id", "RacebucketPolicy"}, {"Statement", {}} }
 bool S3Manager::addObjPermission(const std::string &uuid,
                                  const std::string &bucket,
                                  const std::string &statementKey,
@@ -54,11 +54,12 @@ bool S3Manager::addObjPermission(const std::string &uuid,
   std::lock_guard<std::mutex> lock{policyLock};
   TRACE_METHOD(uuid, bucket, statementKey, permission);
 
-  auto statementItems = policyJson["Statement"].items();
+  auto statementItems = policyJsonMap.at(bucket)["Statement"].items();
   auto statement = std::find_if(begin(statementItems), end(statementItems),
                                 [&statementKey](const auto &obj){ return obj.value()["Sid"] == statementKey; });
 
   std::string resourceToAdd = "arn:aws:s3:::" + bucket + "/" + uuid;
+  logInfo("resourceToAdd: " + resourceToAdd);
   if (statement == end(statementItems)) {
     logInfo("Could not find " + statementKey + " in policy JSON, adding it");
     nlohmann::json statementJson;
@@ -78,10 +79,10 @@ bool S3Manager::addObjPermission(const std::string &uuid,
        {"Sid", statementKey}
      };
     }
-    policyJson["Statement"].push_back(statementJson);
+    policyJsonMap.at(bucket)["Statement"].push_back(statementJson);
   } else {
     size_t statementIdx = static_cast<size_t>(std::stoi(statement.key()));
-    policyJson["Statement"][statementIdx]["Resource"].push_back(resourceToAdd);   
+    policyJsonMap.at(bucket)["Statement"][statementIdx]["Resource"].push_back(resourceToAdd);   
   }
 
 
@@ -109,16 +110,16 @@ bool S3Manager::removeObjPermission(const std::string &uuid,
   TRACE_METHOD(uuid, bucket, statementKey);
 
   std::string resourceToRemove = "arn:aws:s3:::" + bucket + "/" + uuid;
-  auto statementItems = policyJson["Statement"].items();
+  auto statementItems = policyJsonMap.at(bucket)["Statement"].items();
   auto statement = std::find_if(begin(statementItems), end(statementItems),
                                 [&statementKey](const auto &obj){ return obj.value()["Sid"] == statementKey; });
   if (statement == end(statementItems)) {
-    logError("Could not find " + statementKey + " in policy JSON: " + policyJson["Statement"].dump());
+    logError("Could not find " + statementKey + " in policy JSON: " + policyJsonMap.at(bucket)["Statement"].dump());
     return false;
   }
 
   size_t statementIdx = static_cast<size_t>(std::stoi(statement.key()));
-  auto resourceItems = policyJson["Statement"][statementIdx]["Resource"].items();
+  auto resourceItems = policyJsonMap.at(bucket)["Statement"][statementIdx]["Resource"].items();
   auto resource = std::find_if(begin(resourceItems), end(resourceItems),
                                 [&resourceToRemove](const auto &obj){ return obj.value() == resourceToRemove; });
   if (resource == end(resourceItems)) {
@@ -127,11 +128,11 @@ bool S3Manager::removeObjPermission(const std::string &uuid,
   }
 
   size_t resourceIdx = static_cast<size_t>(std::stoi(resource.key()));
-  policyJson["Statement"][statementIdx]["Resource"].erase(resourceIdx);
+  policyJsonMap.at(bucket)["Statement"][statementIdx]["Resource"].erase(resourceIdx);
 
-  if (policyJson["Statement"][statementIdx]["Resource"].empty()) {
+  if (policyJsonMap.at(bucket)["Statement"][statementIdx]["Resource"].empty()) {
     logInfo("Removed last puttable object, deleting policy statement: " + statementKey);
-    policyJson["Statement"].erase(statementIdx);
+    policyJsonMap.at(bucket)["Statement"].erase(statementIdx);
   }
 
   updatePolicy(bucket);
@@ -199,9 +200,35 @@ bool S3Manager::createBucket(const std::string &bucketName, const std::string &r
         auto err = outcome.GetError();
         logError("Error: PutPublicAccessBlock: " + err.GetExceptionName() + ": " + err.GetMessage());
       }
-    else {
-      logInfo("Successfully PutPublicAccessBlock for " + bucketName);
+      else {
+        logInfo("Successfully PutPublicAccessBlock for " + bucketName);
+      }
     }
+    
+    policyJsonMap[bucketName] = { {"Version", "2012-10-17"}, {"Id", "RacebucketPolicy"}, {"Statement", {}}};
+    return outcome.IsSuccess();
+}
+
+bool S3Manager::deleteBucket(const std::string &bucketName, const std::string &region) {
+    TRACE_METHOD(bucketName, region);
+    Aws::S3::Model::DeleteBucketRequest request;
+    request.SetBucket(bucketName);
+
+    // Aws::S3::Model::DeleteBucketConfiguration deleteBucketConfig;
+    // if (region != "us-east-1") {
+    //   deleteBucketConfig.SetLocationConstraint(
+    //                                            Aws::S3::Model::BucketLocationConstraintMapper::GetBucketLocationConstraintForName(
+    //                                                                                                                               region));
+    // }
+    // request.SetDeleteBucketConfiguration(deleteBucketConfig);
+
+    Aws::S3::Model::DeleteBucketOutcome outcome = s3Client.DeleteBucket(request);
+    if (!outcome.IsSuccess()) {
+        auto err = outcome.GetError();
+        logError("Error: DeleteBucket: " + err.GetExceptionName() + ": " + err.GetMessage());
+    }
+    else {
+      logInfo("Deleted bucket " + bucketName + " in the specified AWS Region.");
     }
 
     return outcome.IsSuccess();
@@ -209,11 +236,11 @@ bool S3Manager::createBucket(const std::string &bucketName, const std::string &r
 
 bool S3Manager::updatePolicy(const std::string &bucketName) {
   TRACE_METHOD(bucketName);
-  logInfo("New Policy: " + policyJson.dump());
+  logInfo("New Policy: " + policyJsonMap.at(bucketName).dump());
  
   std::shared_ptr<Aws::StringStream> request_body =
     Aws::MakeShared<Aws::StringStream>("");
-  *request_body << policyJson;
+  *request_body << policyJsonMap.at(bucketName);
     
   Aws::S3::Model::PutBucketPolicyRequest request;
   request.SetBucket(bucketName);

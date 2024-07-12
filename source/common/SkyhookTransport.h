@@ -75,11 +75,13 @@ public:
     // TODO make unPUT/GETable
   
 protected:
+    virtual void handleUserInputResponse(RaceHandle handle, bool answered,
+                                         const std::string &response);
     virtual std::shared_ptr<Link> createLinkInstance(const LinkID &linkId,
                                                      const LinkAddress &address,
                                                      const LinkProperties &properties,
                                                      bool isCreator);
-    virtual std::string generateRandomSeed();
+    virtual std::string generateRandomString(int byteSsize);
 
     ITransportSdk *sdk;
     std::string racePersona;
