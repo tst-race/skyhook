@@ -114,7 +114,7 @@ bool S3Manager::removeObjPermission(const std::string &uuid,
   auto statement = std::find_if(begin(statementItems), end(statementItems),
                                 [&statementKey](const auto &obj){ return obj.value()["Sid"] == statementKey; });
   if (statement == end(statementItems)) {
-    logError("Could not find " + statementKey + " in policy JSON: " + policyJsonMap.at(bucket)["Statement"].dump());
+    logInfo("Could not find " + statementKey + " in policy JSON: " + policyJsonMap.at(bucket)["Statement"].dump());
     return false;
   }
 
@@ -123,7 +123,7 @@ bool S3Manager::removeObjPermission(const std::string &uuid,
   auto resource = std::find_if(begin(resourceItems), end(resourceItems),
                                 [&resourceToRemove](const auto &obj){ return obj.value() == resourceToRemove; });
   if (resource == end(resourceItems)) {
-    logError("Could not find " + resourceToRemove + " in policy JSON: " + statement.value().dump());
+    logInfo("Could not find " + resourceToRemove + " in policy JSON: " + statement.value().dump());
     return false;
   }
 
@@ -225,7 +225,7 @@ bool S3Manager::deleteBucket(const std::string &bucketName, const std::string &r
     Aws::S3::Model::DeleteBucketOutcome outcome = s3Client.DeleteBucket(request);
     if (!outcome.IsSuccess()) {
         auto err = outcome.GetError();
-        logError("Error: DeleteBucket: " + err.GetExceptionName() + ": " + err.GetMessage());
+        logWarning("Error: DeleteBucket: " + err.GetExceptionName() + ": " + err.GetMessage());
     }
     else {
       logInfo("Deleted bucket " + bucketName + " in the specified AWS Region.");
@@ -306,7 +306,7 @@ bool S3Manager::deleteObject(const std::string &bucketName,
 
     if (!outcome.IsSuccess()) {
         const Aws::S3::S3Error &err = outcome.GetError();
-        logError("Error: DeleteObject(" + bucketName + "/" + objectUuid + "): " + 
+        logWarning("Error: DeleteObject(" + bucketName + "/" + objectUuid + "): " + 
                  err.GetExceptionName() + ": " + err.GetMessage());
         return false;
     }

@@ -149,7 +149,10 @@ void LinkAccountHolder::shutdown() {
         s3Manager->makeObjUngettable(uuid, address);
       }
       s3Manager->deleteBucket(address.fetchBucket, address.region);
-      if (address.fetchBucket != address.postBucket) {
+      logInfo("fetchBucket == postBucket " + std::to_string(address.fetchBucket.compare(address.postBucket)));
+      logInfo(address.fetchBucket + " " + address.postBucket);
+      if (address.fetchBucket.compare(address.postBucket) != 0) {
+        logInfo("deleting postBucket");
         s3Manager->deleteBucket(address.postBucket, address.region);
       }
     });
