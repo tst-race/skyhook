@@ -81,7 +81,14 @@ fi
 
 
 formatlog "INFO" "Removing previous build artifacts"
-rm -rf ${CURRENT_DIR}/build/*
+
+echo SKIP_AWS_SDK ${SKIP_AWS_SDK}
+if [ "${SKIP_AWS_SDK}" ]
+then
+    mkdir build || find ./build -maxdepth 1 -mindepth 1 -not -iname aws-install -exec rm -rf {} \;
+else
+    rm -rf build/*
+fi
 
 formatlog "INFO" "Cleaning artifacts in the plugin dir"
 rm -rf ${CURRENT_DIR}/kit/artifacts/*

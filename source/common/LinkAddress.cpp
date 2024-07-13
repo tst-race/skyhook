@@ -27,6 +27,7 @@ void to_json(nlohmann::json &destJson, const LinkAddress &srcLinkAddress) {
         {"initialPostObjUuid", srcLinkAddress.initialPostObjUuid},
         {"openObjects", srcLinkAddress.openObjects},
         {"maxTries", srcLinkAddress.maxTries},
+        {"singleReceive", srcLinkAddress.singleReceive},
         // clang-format on
     };
 }
@@ -41,4 +42,5 @@ void from_json(const nlohmann::json &srcJson, LinkAddress &destLinkAddress) {
     // Optional
     destLinkAddress.openObjects = srcJson.value("openObjects", destLinkAddress.openObjects);
     destLinkAddress.maxTries = srcJson.value("maxTries", destLinkAddress.maxTries);
+    destLinkAddress.singleReceive = srcJson.value("singleReceive", destLinkAddress.singleReceive);
 }

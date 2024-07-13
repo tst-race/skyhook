@@ -19,6 +19,7 @@
 
 #include <algorithm>
 
+#include "JsonTypes.h"
 #include "LinkUserModel.h"
 #include "log.h"
 
@@ -115,6 +116,19 @@ ComponentStatus SkyhookBaseUserModel::onTransportEvent(const Event & /* event */
     return COMPONENT_OK;
 }
 
+ActionTimeline SkyhookBaseUserModel::onSendPackage(const LinkID &linkId,
+                                                             int /* bytes */) {
+    nlohmann::json actionJson = ActionJson{linkId, ACTION_POST};
+    Action action{
+        0,
+        ++nextActionId,
+        actionJson.dump(),
+    };
+
+    return {action};
+}
+
+
 #ifndef TESTBUILD
 IUserModelComponent *createUserModel(const std::string &usermodel, IUserModelSdk *sdk,
                                      const std::string &roleName,
@@ -126,6 +140,7 @@ void destroyUserModel(IUserModelComponent *component) {
     TRACE_FUNCTION();
     delete component;
 }
+
 
 const RaceVersionInfo raceVersion = RACE_VERSION;
 #endif

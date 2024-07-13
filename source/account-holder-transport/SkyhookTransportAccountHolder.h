@@ -36,6 +36,8 @@ class SkyhookTransportAccountHolder : public SkyhookTransport {
 public:
     explicit SkyhookTransportAccountHolder(ITransportSdk *sdk, const std::string &roleName);
 
+    virtual ComponentStatus onUserInputReceived(RaceHandle handle, bool answered,
+                                                const std::string &response) override;
     S3Manager s3Manager;
   
 protected:
@@ -43,6 +45,9 @@ protected:
                                                      const LinkAddress &address,
                                                      const LinkProperties &properties,
                                                      bool isCreator) override;
+
+    RaceHandle canonicalIdReqHandle;
+    // std::string canonicalId;
 };
 
 #endif  // __SKYHOOK_TRANSPORT_ACCOUNT_HOLDER_H__

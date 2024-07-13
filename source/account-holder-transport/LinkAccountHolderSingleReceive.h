@@ -15,8 +15,8 @@
 // limitations under the License.
 //
 
-#ifndef __COMMS_TWOSIX_TRANSPORT_LINK_ACCOUNT_HOLDER_H__
-#define __COMMS_TWOSIX_TRANSPORT_LINK_ACCOUNT_HOLDER_H__
+#ifndef __COMMS_TWOSIX_TRANSPORT_LINK_ACCOUNT_HOLDER_SINGLE_RECEIVE_H__
+#define __COMMS_TWOSIX_TRANSPORT_LINK_ACCOUNT_HOLDER_SINGLE_RECEIVE_H__
 
 #include <ComponentTypes.h>
 #include <LinkProperties.h>
@@ -32,9 +32,7 @@
 #include <vector>
 
 #include "Link.h"
-
-const int SHUTDOWN_DELAY_SECONDS = 10;
-
+#include "LinkAccountHolder.h"
 class SkyhookTransportAccountHolder;
 // #include "SkyhookTransport.h"
 
@@ -43,22 +41,15 @@ class ITransportSdk;
 /**
  * @brief A Instance of a link within the twoSixIndirectCpp transport
  */
-class LinkAccountHolder : public Link {
+class LinkAccountHolderSingleReceive : public LinkAccountHolder {
 public:
-    LinkAccountHolder(const LinkID &linkId, const LinkAddress &address, const LinkProperties &properties, bool isCreator, SkyhookTransportAccountHolder *transport, ITransportSdk *sdk);
+    LinkAccountHolderSingleReceive(const LinkID &linkId, const LinkAddress &address, const LinkProperties &properties, bool isCreator, SkyhookTransportAccountHolder *transport, ITransportSdk *sdk);
 
-    virtual ~LinkAccountHolder();
+    virtual ~LinkAccountHolderSingleReceive();
 
 protected:
     virtual std::string fetchOnActionThread(const std::string &fetchObjUuid) override; 
     virtual std::string postOnActionThread(const std::string &postObjUuid, const std::vector<RaceHandle> &handles, uint64_t actionId) override;
-    virtual void shutdown() override;
-
-    bool creator;
-    SkyhookTransportAccountHolder *accountHolderTransport;
-
-  std::deque<std::string> puttableUuids; // objects publicly writable
-  std::deque<std::string> fetchableUuids; // objects publicy readable
 };
 
-#endif  //  __COMMS_TWOSIX_TRANSPORT_LINK_ACCOUNT_HOLDER_H__
+#endif  //  __COMMS_TWOSIX_TRANSPORT_LINK_ACCOUNT_HOLDER_SINGLE_RECEIVE_H__
