@@ -191,30 +191,19 @@ else()
         ${PLUGIN_BASE_DIR}/artifacts/${NODE_TYPE}-server/PluginSkyhook/manifest.json
     )
 
-
-  set(AWS_SDK ${CMAKE_CURRENT_SOURCE_DIR}/../build/aws-install)
-  set(AWS_SDK_FILES
-    libaws-crt-cpp.so
-    libaws-cpp-sdk-core.so
-    libaws-cpp-sdk-s3.so
-    )
-  FOREACH(AWS_SDK_FILE ${AWS_SDK_FILES})
-    add_custom_command(
+endif()
+set(AWS_SDK ${CMAKE_CURRENT_SOURCE_DIR}/../build/aws-install)
+add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_BASE_DIR}/artifacts/${NODE_TYPE}-server/PluginSkyhook/aws-sdk
-        # COMMAND ${CMAKE_COMMAND} -E copy ${AWS_SDK}/lib/${AWS_SDK_FILE} ${PLUGIN_BASE_DIR}/artifacts/${NODE_TYPE}-server/PluginSkyhook/aws-sdk/
-        # DEPENDS ${AWS_SDK}/lib/${AWS_SDK_FILE}
 	COMMAND ${CMAKE_COMMAND} -E copy ${AWS_SDK}/lib/* ${PLUGIN_BASE_DIR}/artifacts/${NODE_TYPE}-server/PluginSkyhook/aws-sdk/
         DEPENDS ${AWS_SDK}/lib/
         OUTPUT
             ${PLUGIN_BASE_DIR}/artifacts/${NODE_TYPE}-server/PluginSkyhook/aws-sdk/${AWS_SDK_FILE}
-    )
-    add_custom_target(PluginSkyhook${AWS_SDK_FILE} ALL DEPENDS
+)
+add_custom_target(PluginSkyhook${AWS_SDK_FILE} ALL DEPENDS
         ${PLUGIN_BASE_DIR}/artifacts/${NODE_TYPE}-server/PluginSkyhook/aws-sdk/${AWS_SDK_FILE}
-    )
-  ENDFOREACH()
+)
 
-
-endif()
 
 ################################################################################
 # Components
