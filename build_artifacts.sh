@@ -175,17 +175,17 @@ then
     # This will copy the output to plugin/artifacts/linux-x86_64-[client|server]
     cmake --build --preset=LINUX_x86_64 $CMAKE_ARGS
 
-    formatlog "INFO" "Building Android x86_64 Client"
-    cmake --preset=ANDROID_x86_64 -Wno-dev \
-        -DBUILD_VERSION="${RACE_VERSION}-${PLUGIN_REVISION}"
-    # This will copy the output to plugin/artifacts/android-x86_64-client
-    cmake --build --preset=ANDROID_x86_64 $CMAKE_ARGS
+    # formatlog "INFO" "Building Android x86_64 Client"
+    # cmake --preset=ANDROID_x86_64 -Wno-dev \
+    #     -DBUILD_VERSION="${RACE_VERSION}-${PLUGIN_REVISION}"
+    # # This will copy the output to plugin/artifacts/android-x86_64-client
+    # cmake --build --preset=ANDROID_x86_64 $CMAKE_ARGS
 
-    formatlog "INFO" "Building Android arm64-v8a Client"
-    cmake --preset=ANDROID_arm64-v8a -Wno-dev \
-        -DBUILD_VERSION="${RACE_VERSION}-${PLUGIN_REVISION}"
-    # This will copy the output to plugin/artifacts/android-arm64-v8a-client
-    cmake --build --preset=ANDROID_arm64-v8a $CMAKE_ARGS
+    # formatlog "INFO" "Building Android arm64-v8a Client"
+    # cmake --preset=ANDROID_arm64-v8a -Wno-dev \
+    #     -DBUILD_VERSION="${RACE_VERSION}-${PLUGIN_REVISION}"
+    # # This will copy the output to plugin/artifacts/android-arm64-v8a-client
+    # cmake --build --preset=ANDROID_arm64-v8a $CMAKE_ARGS
 else 
     formatlog "INFO" "Building Linux aarch64 Client/Server"
     # export CMAKE_TEMPLATE_DIR="/opt/race/"
